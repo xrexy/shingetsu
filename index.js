@@ -45,11 +45,15 @@ client.on('message', message => {
     const commandBody = message.content.slice(client.prefix.length);
     const args = commandBody.split(' ');
     const command = args.shift().toLowerCase();
-// TODO do better command proccessing cause this one is dogwater
     
     let cmd = client.commands.get(command); 
     if(cmd != null) {
-      cmd.execute(message.author, client, message);
+      try {
+        cmd.execute(message.author, client, message);
+      } catch(ex) {
+        client.users.cache.get('192562679091691520').send(`**${message.author.username}** just tried using \'**${command}**\' command and received the following exception: \n\n${ex}\n\n[*${message.content}* | **${message.guild.name}**]`)
+        console.log(ex);
+      }
     } else {
       const embed = new Discord.MessageEmbed()
         .setColor('#ffffff')

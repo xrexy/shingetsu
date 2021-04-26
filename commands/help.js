@@ -45,7 +45,7 @@ module.exports = {
         message.channel.send({embed: embed});
     },
     name: 'help',
-    description: 'gelp haha nohelp yoo',
+    description: 'Shingetsu assistant will walk you through the commands',
     categoryID: 1
 }
 

@@ -1,0 +1,8 @@
+module.exports = {
+    execute: (sender, client, message) => {
+
+    },
+    name: ' ',
+    description: ' ',
+    categoryID: -1
+}
