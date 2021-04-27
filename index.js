@@ -1,42 +1,26 @@
 const Discord = require("discord.js");
-const config = require("./config.json");
 const client = new Discord.Client();
-const fs = require("fs");
-
-const commandFolder = './commands';
-
-// CATEGORY IDs
-// MODERATION = 0
-// RANDOM = 1
-// FUN = 2
-
-console.log('kur');
+const loader = require("./loader");
 
 client.commands = new Discord.Collection();
-client.prefix = '>';
+client.assistant = new Discord.Collection();
+client.config = require("./config.json");
+client.prefix = client.config.PREFIX;
 
-fs.readdir(commandFolder, (err, files) => {
-    if(err) {
-      console.log(err);
-      return;
-    }
+client.categoryNames = {
+  '-1': "",
+  '0': "Moderation",
+  '1': "Random",
+  '2': "Fun",
+};
+client.notifyCreator = (exception, message) => {
+  client.users.cache.get('192562679091691520')
+    .send(`**${message.author.username}** just received the following exception: \n\n${exception}\n\n[*${message.content}* | **${message.guild.name}**]`)     
+}
 
-    let jsfiles = files.filter(file => file.split(".").pop() === "js");
-    if(jsfiles.length <= 0) {
-      console.log("There are no commands to register!");
-      return;
-    }
+loader.load(client);
 
-    console.log(jsfiles.length + ' files are loading...');
-
-    jsfiles.forEach((registered, i) => {
-      let props = require(commandFolder + '/' + registered);
-      client.commands.set(registered.substr(0, registered.lastIndexOf('.')), props);
-      console.log('[' + (i+1) + '] \'' + registered + '\' successfully loaded.');
-    });
-  });
-
-client.login(config.TOKEN);
+client.login(client.config.TOKEN);
 
 client.on('message', message => {
     if (message.author.bot) return;
@@ -51,22 +35,10 @@ client.on('message', message => {
       try {
         cmd.execute(message.author, client, message);
       } catch(ex) {
-        client.users.cache.get('192562679091691520').send(`**${message.author.username}** just tried using \'**${command}**\' command and received the following exception: \n\n${ex}\n\n[*${message.content}* | **${message.guild.name}**]`)
+        client.notifyCreator(ex, message);
         console.log(ex);
       }
     } else {
-      const embed = new Discord.MessageEmbed()
-        .setColor('#ffffff')
-        .setAuthor('Shingetsu Assistant', 'https://i.imgur.com/mW0dJur.jpg')
-        .setThumbnail('https://i.imgur.com/mW0dJur.jpg')
-        .addFields(
-          { name: 'Moderation', value: '`/help moderation`', inline: true},
-          { name: 'Online', value: '`/help online`', inline: true},
-          { name: 'Random', value: '`/help random`', inline: true},
-        )
-        .setFooter('Response took ' + (Date.now() - message.createdTimestamp)/1000 + 's')
-        .setTimestamp()
-
-      message.channel.send({embed: embed});
+      message.channel.send({embed: client.assistant[-1]});
     }
   });
